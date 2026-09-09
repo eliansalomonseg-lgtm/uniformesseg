@@ -1,0 +1,38 @@
+# Archivos de entorno y credenciales
+.env
+.env.local
+.env.*.local
+
+# Dependencias (si se agregan en el futuro)
+/vendor/
+/node_modules/
+
+# Archivos de configuración de IDEs y Editores
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.project
+.buildpath
+.settings/
+nbproject/
+
+# Logs y Archivos Temporales
+*.log
+error_log
+/tmp/
+/temp/
+/cache/
+
+# Archivos del Sistema Operativo
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+._*
+
+# Copias de seguridad
+*.bak
+*.swp
+*~

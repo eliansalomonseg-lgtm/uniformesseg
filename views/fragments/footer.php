@@ -1,0 +1,1 @@
+</main><footer>Secretaría de Educación Guerrero · Control de almacén a Servicio Regional</footer><script src="views/js/navigation.js"></script><script src="views/js/solicitudes.js"></script></body></html>
