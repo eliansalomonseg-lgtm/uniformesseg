@@ -1,16 +1,127 @@
 <?php
-$disponiblePorTalla=[];
-foreach($disponibilidadGeneral as $existencia){
-    $disponiblePorTalla[$existencia['sexo']][(int)$existencia['talla_id']]=(int)$existencia['disponible'];
+$disponiblePorTalla = [];
+foreach ($disponibilidadGeneral as $existencia) {
+    $disponiblePorTalla[$existencia['sexo']][(int)$existencia['talla_id']] = (int)$existencia['disponible'];
 }
 ?>
 <a class="back-link" href="<?= escapar(url('solicitudes')) ?>">← Volver a solicitudes</a>
-<section class="request-intro"><div><span>Registro de solicitud escolar</span><h3>Captura de requerimientos de uniformes</h3><p>El Servicio Regional se obtiene automáticamente de la relación oficial de la escuela seleccionada.</p></div><div class="request-step"><b>1</b><span>Escuela</span><i>→</i><b class="<?= $escuela?'step-ready':'' ?>">2</b><span>Cantidades</span><i>→</i><b>3</b><span>Registro</span></div></section>
 
-<?php if($error): ?><div class="notice request-error"><?= escapar($error) ?></div><?php endif; ?>
-<?php if(!$escuela): ?>
-<section class="school-search-panel"><div class="panel-heading"><div><span>Paso 1</span><h3>Localiza a la escuela solicitante</h3></div></div><div class="school-search-form"><label for="busqueda">CCT o nombre de la escuela</label><div class="autocomplete-wrap" data-busqueda-url="<?= escapar(url('solicitud-buscar-escuelas')) ?>" data-solicitud-url="<?= escapar(url('solicitud-nueva')) ?>"><span class="search-symbol">⌕</span><input id="busqueda" value="<?= escapar($busqueda) ?>" placeholder="Escribe CCT o nombre; las coincidencias aparecerán aquí" autocomplete="off" autofocus><div class="autocomplete-results" hidden></div></div></div><p class="search-help">Empieza a escribir al menos dos caracteres y selecciona la escuela correcta de las coincidencias.</p><?php if($busqueda): ?><div class="search-results"><span><?= numero(count($resultados)) ?> coincidencias</span><?php if(!$resultados): ?><div class="empty">No se encontraron escuelas con esa búsqueda.</div><?php endif; ?><?php foreach($resultados as $resultado): ?><article class="school-result"><div class="school-result-main"><span><?= escapar($resultado['cct']) ?></span><h4><?= escapar($resultado['nombre']) ?></h4><p><?= escapar($resultado['nivel']??'') ?> · <?= escapar($resultado['municipio']??'') ?> · <?= escapar($resultado['localidad']??'') ?></p></div><div class="school-result-regional"><?php if($resultado['servicio_regional']): ?><span>Servicio Regional</span><strong><?= escapar($resultado['servicio_regional']) ?></strong><small><?= escapar($resultado['cct_servicio_regional']??'') ?></small><?php else: ?><span class="no-regional">Sin Servicio Regional oficial</span><?php endif; ?></div><?php if($resultado['servicio_regional']): ?><a class="button" href="<?= escapar(url('solicitud-nueva',['escuela_id'=>$resultado['id']])) ?>">Seleccionar</a><?php endif; ?></article><?php endforeach; ?></div><?php endif; ?></section>
-<?php else: ?>
-<section class="selected-school"><div class="selected-school-label">Escuela seleccionada</div><div class="selected-school-grid"><div><span class="selected-cct"><?= escapar($escuela['cct']) ?></span><h3><?= escapar($escuela['nombre']) ?></h3><p><?= escapar($escuela['nivel']??'') ?> · <?= escapar($escuela['municipio']??'') ?> · <?= escapar($escuela['localidad']??'') ?></p></div><div class="official-regional"><span>Servicio Regional oficial</span><?php if($escuela['servicio_regional']): ?><strong><?= escapar($escuela['servicio_regional']) ?></strong><small>CCT Ser. Regional: <?= escapar($escuela['cct_servicio_regional']??'No disponible') ?></small><?php else: ?><strong>Sin relación vigente</strong><small>No es posible registrar la solicitud hasta contar con su relación oficial.</small><?php endif; ?></div><a class="button secondary" href="<?= escapar(url('solicitud-nueva')) ?>">Cambiar escuela</a></div></section>
-<?php if($escuela['servicio_regional']): ?><form method="post" class="request-form"><input type="hidden" name="ruta" value="solicitud-nueva"><input type="hidden" name="escuela_id" value="<?= (int)$escuela['id'] ?>"><section class="request-data"><div class="panel-heading"><div><span>Paso 2</span><h3>Datos de la solicitud</h3></div></div><div class="request-fields"><label>Fecha de solicitud<input type="date" name="fecha_solicitud" value="<?= escapar(date('Y-m-d')) ?>" required></label><label>Ciclo o periodo<input type="text" name="ciclo_periodo" maxlength="50" placeholder="Ejemplo: 2026-2027"></label><label class="full-field">Observaciones<textarea name="observaciones" maxlength="1000" placeholder="Información adicional de la solicitud, si aplica"></textarea></label></div></section><section class="request-quantities"><div class="panel-heading"><div><span>Paso 3</span><h3>Uniformes solicitados por talla</h3></div><div class="inline-legend"><span class="girl-dot">Niña</span><span class="boy-dot">Niño</span></div></div><div class="request-availability" id="request-availability"><strong>Disponibilidad general de almacenes</strong><span id="request-availability-message">Capture cantidades para revisar si existen uniformes disponibles.</span></div><p>La revisión usa la existencia disponible total de los almacenes y se actualiza mientras captura cantidades.</p><div class="quantity-grid"><?php foreach($tallas as $talla): ?><article class="quantity-card"><h4>Talla <?= escapar($talla['talla']) ?></h4><label class="girl-input">♀ Niña<input type="number" name="cantidad[NINA][<?= (int)$talla['id'] ?>]" value="0" min="0" step="1" inputmode="numeric" data-disponible="<?= (int)($disponiblePorTalla['NINA'][(int)$talla['id']]??0) ?>"><small class="quantity-stock">Disponibles: <?= numero($disponiblePorTalla['NINA'][(int)$talla['id']]??0) ?></small></label><label class="boy-input">♂ Niño<input type="number" name="cantidad[NINO][<?= (int)$talla['id'] ?>]" value="0" min="0" step="1" inputmode="numeric" data-disponible="<?= (int)($disponiblePorTalla['NINO'][(int)$talla['id']]??0) ?>"><small class="quantity-stock">Disponibles: <?= numero($disponiblePorTalla['NINO'][(int)$talla['id']]??0) ?></small></label></article><?php endforeach; ?></div></section><div class="request-submit"><div><strong>Se registrará como PENDIENTE</strong><span>La solicitud quedará vinculada a <?= escapar($escuela['servicio_regional']) ?>.</span></div><button class="button">Registrar solicitud</button></div></form><?php endif; ?>
+<section class="request-intro">
+    <div>
+        <span>Registro de solicitud multi-escolar</span>
+        <h3>Captura de requerimientos de uniformes</h3>
+        <p>Puedes agregar una o varias escuelas simultáneamente, incluso si pertenecen a diferentes Servicios Regionales.</p>
+    </div>
+    <div class="request-step">
+        <b class="step-ready">1</b><span>Datos</span>
+        <i>→</i>
+        <b id="step-schools" class="<?= $escuelaInicial ? 'step-ready' : '' ?>">2</b><span>Escuelas</span>
+        <i>→</i>
+        <b id="step-quantities">3</b><span>Cantidades</span>
+    </div>
+</section>
+
+<?php if ($error): ?>
+    <div class="notice request-error"><?= escapar($error) ?></div>
 <?php endif; ?>
+
+<form method="post" class="request-form multi-school-form" id="form-solicitud-multi">
+    <input type="hidden" name="ruta" value="solicitud-nueva">
+
+    <!-- Paso 1: Datos generales -->
+    <section class="request-data">
+        <div class="panel-heading">
+            <div>
+                <span>Paso 1</span>
+                <h3>Datos de la solicitud</h3>
+            </div>
+        </div>
+        <div class="request-fields">
+            <label>
+                Fecha de solicitud
+                <input type="date" name="fecha_solicitud" value="<?= escapar(date('Y-m-d')) ?>" required>
+            </label>
+            <label>
+                Ciclo o periodo
+                <input type="text" name="ciclo_periodo" maxlength="50" placeholder="Ejemplo: 2026-2027">
+            </label>
+            <label class="full-field">
+                Observaciones
+                <textarea name="observaciones" maxlength="1000" placeholder="Información adicional de la solicitud o del conjunto de escuelas"></textarea>
+            </label>
+        </div>
+    </section>
+
+    <!-- Paso 2: Buscador interactivo de escuelas -->
+    <section class="school-search-panel">
+        <div class="panel-heading">
+            <div>
+                <span>Paso 2</span>
+                <h3>Buscar y agregar escuelas a esta solicitud</h3>
+            </div>
+            <span class="panel-tag">Multi-regional habilitado</span>
+        </div>
+
+        <div class="school-search-form">
+            <label for="busqueda-escuela">CCT o nombre de la escuela</label>
+            <div class="autocomplete-wrap" data-busqueda-url="<?= escapar(url('solicitud-buscar-escuelas')) ?>">
+                <span class="search-symbol">⌕</span>
+                <input id="busqueda-escuela" placeholder="Escribe al menos 2 caracteres del CCT o nombre del plantel..." autocomplete="off">
+                <div class="autocomplete-results" hidden></div>
+            </div>
+        </div>
+        <p class="search-help">Busca las escuelas y presiona <b>"+ Agregar a la solicitud"</b>. Puedes meter tantas escuelas como necesites de cualquier región.</p>
+    </section>
+
+    <!-- Paso 3: Escuelas agregadas con captura por escuela -->
+    <section class="request-quantities multi-school-container">
+        <div class="panel-heading">
+            <div>
+                <span>Paso 3</span>
+                <h3>Escuelas y uniformes solicitados (<span id="schools-count">0</span>)</h3>
+            </div>
+            <div class="inline-legend">
+                <span class="girl-dot">Niña</span>
+                <span class="boy-dot">Niño</span>
+            </div>
+        </div>
+
+        <div class="empty multi-school-empty" id="multi-school-empty" <?= $escuelaInicial ? 'hidden' : '' ?>>
+            <p><strong>Aún no has agregado ninguna escuela a esta solicitud.</strong></p>
+            <p>Utiliza el buscador de arriba para localizar y agregar la primera escuela.</p>
+        </div>
+
+        <div class="schools-cards-list" id="schools-cards-list"></div>
+
+        <!-- Barra de disponibilidad general consolidada -->
+        <div class="request-availability" id="request-availability">
+            <strong>Disponibilidad consolidada de almacenes</strong>
+            <span id="request-availability-message">Agrega escuelas y captura cantidades para verificar existencias globales.</span>
+        </div>
+    </section>
+
+    <!-- Barra de resumen y envío -->
+    <div class="request-submit-bar">
+        <div class="request-summary-counters">
+            <div>
+                <strong id="summary-schools-count">0</strong>
+                <span>Escuelas</span>
+            </div>
+            <div>
+                <strong id="summary-regionals-count">0</strong>
+                <span>Servicios Reg.</span>
+            </div>
+            <div>
+                <strong id="summary-total-uniforms">0</strong>
+                <span>Uniformes totales</span>
+            </div>
+        </div>
+        <button class="button" type="submit" id="btn-submit-solicitud" disabled>
+            Registrar solicitud (<span id="submit-schools-label">0 escuelas</span>)
+        </button>
+    </div>
+</form>
+
+<script id="catalog-tallas" type="application/json"><?= json_encode($tallas, JSON_UNESCAPED_UNICODE) ?></script>
+<script id="catalog-disponibilidad" type="application/json"><?= json_encode($disponiblePorTalla, JSON_UNESCAPED_UNICODE) ?></script>
+<script id="initial-school" type="application/json"><?= json_encode($escuelaInicial, JSON_UNESCAPED_UNICODE) ?></script>
