@@ -80,9 +80,21 @@ class controllerEntrega
             mostrarNoEncontrado();
             return;
         }
+
+        if (empty($entrega['codigo_verificacion'])) {
+            $codigo = bin2hex(random_bytes(16));
+            $this->pdo->prepare('UPDATE entregas_servicios_regionales SET codigo_verificacion = :cod WHERE id = :id')
+                ->execute(['cod' => $codigo, 'id' => $id]);
+            $entrega['codigo_verificacion'] = $codigo;
+        }
+
+        require_once __DIR__ . '/../services/serviceQr.php';
+        $urlVerif = serviceQr::generarUrlVerificacion($entrega['codigo_verificacion']);
+        $qrSvg = serviceQr::generarQrSvg($urlVerif, 130);
+
         $detalle = $modelo->obtenerDetalle($id);
         $solicitudes = $modelo->obtenerSolicitudesPorEntrega($id);
-        renderizarVista('entregas/detalle', compact('entrega', 'detalle', 'solicitudes'), 'Detalle de entrega', 'entregas');
+        renderizarVista('entregas/detalle', compact('entrega', 'detalle', 'solicitudes', 'urlVerif', 'qrSvg'), 'Detalle de entrega', 'entregas');
     }
 
     public function cancelar(int $id = 0): void

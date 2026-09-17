@@ -17,11 +17,16 @@ $rutas=[
     'servicios-regionales'=>['controllerServicioRegional','index'], 'escuelas'=>['controllerEscuela','index'], 'solicitudes'=>['controllerSolicitud','index'], 'solicitud-nueva'=>['controllerSolicitud','nueva'], 'solicitud-buscar-escuelas'=>['controllerSolicitud','buscarEscuelasJson'],
     'solicitud-detalle'=>['controllerSolicitud','detalle'], 'solicitud-editar'=>['controllerSolicitud','editar'], 'solicitud-entregar'=>['controllerSolicitud','entregarDirecto'], 'entregas'=>['controllerEntrega','index'], 'entrega-nueva'=>['controllerEntrega','nueva'],
     'entrega-detalle'=>['controllerEntrega','detalle'], 'entrega-cancelar'=>['controllerEntrega','cancelar'], 'entrega-eliminar'=>['controllerEntrega','eliminar'], 'movimientos'=>['controllerMovimientoAlmacen','index'],
+    'inventario-entrada'=>['controllerInventario','entrada'], 'inventario-traspaso'=>['controllerInventario','traspaso'], 'inventario-ajuste'=>['controllerInventario','ajuste'], 'inventario-existencias-json'=>['controllerInventario','existenciasJson'],
+    'comprobante-entrada'=>['controllerInventario','comprobanteEntrada'], 'comprobante-traspaso'=>['controllerInventario','comprobanteTraspaso'], 'comprobante-ajuste'=>['controllerInventario','comprobanteAjuste'],
+    'entrega-escuela-nueva'=>['controllerEntregaEscuela','nueva'], 'acta-escuela'=>['controllerEntregaEscuela','acta'],
+    'subir-acuse-escuela'=>['controllerEntregaEscuela','subirAcuse'], 'subir-acuse-regional'=>['controllerEntregaEscuela','subirAcuseRegional'],
+    'verificar-documento'=>['controllerVerificacion','validar'],
 ];
 $ruta=(string)($_GET['ruta']??'inicio');
 if(!isset($rutas[$ruta])){mostrarNoEncontrado();exit;}
 [$clase,$metodo]=$rutas[$ruta]; require_once __DIR__.'/controllers/'.$clase.'.php'; $controlador=new $clase(serviceDatabase::obtenerConexion());
-if(in_array($ruta,['almacen-detalle','solicitud-detalle','solicitud-editar','entrega-detalle','entrega-cancelar','entrega-eliminar'],true)){
+if(in_array($ruta,['almacen-detalle','solicitud-detalle','solicitud-editar','entrega-detalle','entrega-cancelar','entrega-eliminar','comprobante-entrada','comprobante-traspaso','comprobante-ajuste','acta-escuela','subir-acuse-escuela','subir-acuse-regional'],true)){
     $id=filter_input(INPUT_GET,'id',FILTER_VALIDATE_INT) ?: (int)($_GET['id']??0) ?: filter_input(INPUT_POST,'id',FILTER_VALIDATE_INT) ?: (int)($_POST['id']??0);
     if(!$id){mostrarNoEncontrado();exit;}
     $controlador->$metodo($id);

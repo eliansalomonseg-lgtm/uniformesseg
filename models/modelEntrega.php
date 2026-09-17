@@ -179,8 +179,9 @@ class modelEntrega
 
             $ultimoId = $this->pdo->query('SELECT id FROM entregas_servicios_regionales ORDER BY id DESC LIMIT 1 FOR UPDATE')->fetchColumn();
             $folio = sprintf('UNIF-%s-%05d', date('Y'), (int)$ultimoId + 1);
-            $entrega = $this->pdo->prepare("INSERT INTO entregas_servicios_regionales (folio,almacen_id,servicio_regional_id,fecha_salida,estado,created_at,updated_at) VALUES (:folio,:almacen_id,:servicio_regional_id,NOW(),'ENTREGADO',NOW(),NOW())");
-            $entrega->execute(['folio' => $folio, 'almacen_id' => $almacenId, 'servicio_regional_id' => $servicioId]);
+            $codigoVerificacion = bin2hex(random_bytes(16));
+            $entrega = $this->pdo->prepare("INSERT INTO entregas_servicios_regionales (folio,almacen_id,servicio_regional_id,fecha_salida,estado,codigo_verificacion,created_at,updated_at) VALUES (:folio,:almacen_id,:servicio_regional_id,NOW(),'ENTREGADO',:codigo,NOW(),NOW())");
+            $entrega->execute(['folio' => $folio, 'almacen_id' => $almacenId, 'servicio_regional_id' => $servicioId, 'codigo' => $codigoVerificacion]);
             $entregaId = (int)$this->pdo->lastInsertId();
 
             $insertarDetalle = $this->pdo->prepare('INSERT INTO entregas_servicios_regionales_detalle (entrega_id,talla_id,sexo,cantidad_solicitada,cantidad_preparada,cantidad_entregada,cantidad_recibida) VALUES (:entrega_id,:talla_id,:sexo,:cantidad,:cantidad,:cantidad,0)');
@@ -353,15 +354,17 @@ class modelEntrega
                 // Generar nuevo folio de entrega
                 $ultimoId = $this->pdo->query('SELECT id FROM entregas_servicios_regionales ORDER BY id DESC LIMIT 1 FOR UPDATE')->fetchColumn();
                 $folioEntrega = sprintf('UNIF-%s-%05d', date('Y'), (int)$ultimoId + 1);
+                $codigoVerificacion = bin2hex(random_bytes(16));
 
                 // Insertar entrega con su almacén correspondiente y servicio regional correspondiente
                 $insertEntrega = $this->pdo->prepare("INSERT INTO entregas_servicios_regionales
-                    (folio, almacen_id, servicio_regional_id, fecha_salida, estado, created_at, updated_at)
-                    VALUES (:folio, :almacen_id, :servicio_regional_id, NOW(), 'ENTREGADO', NOW(), NOW())");
+                    (folio, almacen_id, servicio_regional_id, fecha_salida, estado, codigo_verificacion, created_at, updated_at)
+                    VALUES (:folio, :almacen_id, :servicio_regional_id, NOW(), 'ENTREGADO', :codigo, NOW(), NOW())");
                 $insertEntrega->execute([
                     'folio' => $folioEntrega,
                     'almacen_id' => $almacenId,
                     'servicio_regional_id' => $servicioId,
+                    'codigo' => $codigoVerificacion,
                 ]);
                 $entregaId = (int)$this->pdo->lastInsertId();
 

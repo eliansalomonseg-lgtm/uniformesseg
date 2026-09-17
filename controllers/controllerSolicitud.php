@@ -208,9 +208,16 @@ class controllerSolicitud
         $modelEntrega = new modelEntrega($this->pdo);
         $planDespacho = $modelEntrega->obtenerPlanDespachoPorSolicitud($id);
 
+        require_once __DIR__.'/../models/modelEntregaEscuela.php';
+        $actas = (new modelEntregaEscuela($this->pdo))->obtenerEntregasPorSolicitud($id);
+        $mapaActas = [];
+        foreach ($actas as $acta) {
+            $mapaActas[(int)$acta['escuela_id']] = $acta;
+        }
+
         renderizarVista(
             'solicitudes/detalle',
-            compact('solicitud', 'detalle', 'escuelasDetalle', 'planDespacho'),
+            compact('solicitud', 'detalle', 'escuelasDetalle', 'planDespacho', 'mapaActas'),
             'Detalle de solicitud',
             'solicitudes'
         );

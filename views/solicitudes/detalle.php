@@ -152,15 +152,41 @@ $serviciosRegionales = $solicitud['servicios_regionales'];
         <?php foreach ($escuelasDetalle as $item): ?>
             <?php $esc = $item['escuela']; ?>
             <article class="school-breakdown-card">
+                <?php $acta = $mapaActas[(int)$item['escuela_id']] ?? null; ?>
                 <div class="school-breakdown-header">
                     <div>
                         <span class="request-cct"><?= escapar($esc['cct']) ?></span>
                         <h4><?= escapar($esc['escuela']) ?></h4>
                         <p><?= escapar($esc['municipio'] ?? '') ?> · <?= escapar($esc['localidad'] ?? '') ?> · <b><?= escapar($esc['servicio_regional'] ?? '') ?></b></p>
                     </div>
-                    <div class="school-breakdown-subtotal">
-                        <strong><?= numero($item['total']) ?></strong>
-                        <small>uniformes</small>
+                    <div style="display:flex;align-items:center;gap:15px;flex-wrap:wrap;">
+                        <div class="school-breakdown-subtotal">
+                            <strong><?= numero($item['total']) ?></strong>
+                            <small>uniformes</small>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:6px;">
+                            <?php if ($acta): ?>
+                                <span class="status status-delivered" style="font-size:11px;">✓ Entregada</span>
+                                <a class="button" style="padding:6px 10px;font-size:11px;" href="<?= escapar(url('acta-escuela', ['id' => $acta['id']])) ?>" title="Ver acta oficial con Código QR">
+                                    📄 Ver Acta / QR
+                                </a>
+                                <?php if (!empty($acta['archivo_acuse'])): ?>
+                                    <a class="button" style="padding:6px 10px;font-size:11px;background:#1d663b;" href="<?= escapar($acta['archivo_acuse']) ?>" target="_blank" title="Ver documento firmado y sellado por la escuela">
+                                        📎 Acuse
+                                    </a>
+                                <?php else: ?>
+                                    <a class="button" style="padding:6px 10px;font-size:11px;background:#b45309;" href="<?= escapar(url('subir-acuse-escuela', ['id' => $acta['id']])) ?>" title="Subir acuse firmado">
+                                        📤 Subir Acuse
+                                    </a>
+                                <?php endif; ?>
+                            <?php elseif (in_array($solicitud['estado'], ['INCLUIDA_EN_ENTREGA', 'ATENDIDA_POR_ALMACEN'], true)): ?>
+                                <a class="button" style="padding:7px 12px;font-size:11px;background:var(--wine);" href="<?= escapar(url('entrega-escuela-nueva', ['solicitud_id' => $solicitud['id'], 'escuela_id' => $item['escuela_id']])) ?>">
+                                    📦 Entregar a Escuela / Emitir Acta
+                                </a>
+                            <?php else: ?>
+                                <span class="status status-pending" style="font-size:10px;">Pendiente de Despacho Regional</span>
+                            <?php endif; ?>
+                        </div>
                     </div>
                 </div>
 

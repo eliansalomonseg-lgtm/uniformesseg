@@ -1,7 +1,22 @@
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:12px;">
     <a class="back-link" style="margin-bottom:0;" href="<?= escapar(url('entregas')) ?>">← Volver al listado de entregas</a>
     
-    <div style="display:flex;gap:10px;align-items:center;">
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <button type="button" class="button secondary" onclick="window.print()" title="Imprimir comprobante de entrega">
+            🖨️ Imprimir
+        </button>
+        <?php if (!empty($entrega['archivo_acuse'])): ?>
+            <a class="button" style="background:#1d663b;" href="<?= escapar($entrega['archivo_acuse']) ?>" target="_blank" title="Ver comprobante escaneado firmado">
+                📎 Ver Acuse Firmado
+            </a>
+            <a class="button secondary" href="<?= escapar(url('subir-acuse-regional', ['id' => $entrega['id']])) ?>" title="Reemplazar archivo de acuse">
+                🔄 Reemplazar
+            </a>
+        <?php elseif ($entrega['estado'] !== 'CANCELADO'): ?>
+            <a class="button" style="background:#b45309;" href="<?= escapar(url('subir-acuse-regional', ['id' => $entrega['id']])) ?>" title="Subir acuse físico firmado y sellado">
+                📤 Subir Acuse Firmado
+            </a>
+        <?php endif; ?>
         <?php if ($entrega['estado'] !== 'CANCELADO'): ?>
             <button type="button" class="button button-cancel" onclick="document.getElementById('modal-cancelar-detalle').hidden=false" title="Cancela la entrega y reingresa el stock al almacén">
                 🚫 Cancelar entrega
@@ -16,6 +31,12 @@
 <?php if (isset($_GET['enviada']) && $_GET['enviada'] === '1'): ?>
     <div class="request-success" style="margin-bottom:18px;">
         ✓ <strong>Entrega registrada correctamente.</strong> Las existencias y los movimientos del almacén fueron actualizados.
+    </div>
+<?php endif; ?>
+
+<?php if (isset($_GET['acuse_subido']) && $_GET['acuse_subido'] === '1'): ?>
+    <div class="request-success" style="margin-bottom:18px;background:#ecfdf5;border-color:#a7f3d0;color:#065f46;">
+        ✓ <strong>Acuse físico resguardado digitalmente.</strong> El comprobante firmado y sellado por el Servicio Regional ha quedado registrado para auditoría oficial.
     </div>
 <?php endif; ?>
 
@@ -68,6 +89,54 @@ foreach ($detalle as $d) {
             </div>
             <strong style="font-size:24px;color:var(--wine);"><?= numero($totalGeneralEntregado) ?></strong>
             <span style="display:block;font-size:12px;color:var(--muted);font-weight:600;">uniformes <?= $esCancelado ? 'reintegrados' : 'entregados' ?></span>
+        </div>
+    </div>
+</section>
+
+<!-- Panel de Verificación QR y Resguardo de Acuse -->
+<section class="chart-panel" style="margin-top:18px;padding:20px;background:#fff;border:1px solid #ebdccb;border-radius:12px;">
+    <div style="display:flex;gap:24px;align-items:center;flex-wrap:wrap;">
+        <div style="background:#fdfcfb;border:1px solid #dfcfbc;padding:10px;border-radius:10px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.04);">
+            <?= $qrSvg ?>
+        </div>
+        <div style="flex:1;min-width:280px;">
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px;">
+                <span style="font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);background:#fef9ee;padding:3px 8px;border-radius:4px;border:1px solid #f6d38e;">
+                    Sello Digital de Autenticidad SEG
+                </span>
+                <?php if (!empty($entrega['archivo_acuse'])): ?>
+                    <span style="font-size:11px;font-weight:700;color:#065f46;background:#ecfdf5;padding:3px 8px;border-radius:4px;border:1px solid #a7f3d0;">
+                        ✓ Acuse Firmado Digitalizado
+                    </span>
+                <?php else: ?>
+                    <span style="font-size:11px;font-weight:700;color:#92400e;background:#fffbeb;padding:3px 8px;border-radius:4px;border:1px solid #fde68a;">
+                        ⏳ Acuse Físico Pendiente de Subir
+                    </span>
+                <?php endif; ?>
+            </div>
+            <h4 style="margin:4px 0 6px;color:var(--wine);font-size:17px;">
+                Verificación Electrónica y Resguardo Documental
+            </h4>
+            <p style="margin:0 0 10px;font-size:13px;color:var(--muted);line-height:1.5;">
+                Escanee el código QR desde cualquier teléfono móvil para validar la autenticidad oficial de este comprobante en los servidores de la SEG, o consulte los documentos de resguardo.
+            </p>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                <code style="background:#f4ece1;color:var(--wine);padding:5px 10px;border-radius:6px;font-size:12px;font-weight:700;letter-spacing:.03em;">
+                    <?= escapar($entrega['codigo_verificacion']) ?>
+                </code>
+                <a class="button secondary" style="font-size:12px;padding:6px 12px;" href="<?= escapar($urlVerif) ?>" target="_blank">
+                    🔍 Abrir Verificación Pública
+                </a>
+                <?php if (!empty($entrega['archivo_acuse'])): ?>
+                    <a class="button" style="font-size:12px;padding:6px 12px;background:#1d663b;" href="<?= escapar($entrega['archivo_acuse']) ?>" target="_blank">
+                        📎 Consultar Acuse Adjunto
+                    </a>
+                <?php else: ?>
+                    <a class="button" style="font-size:12px;padding:6px 12px;background:#b45309;" href="<?= escapar(url('subir-acuse-regional', ['id' => $entrega['id']])) ?>">
+                        📤 Cargar Acuse Físico
+                    </a>
+                <?php endif; ?>
+            </div>
         </div>
     </div>
 </section>
