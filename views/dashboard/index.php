@@ -1,207 +1,165 @@
 <?php
-$totalFisico = (int)$resumen['inventario']['total'];
-$totalNino = (int)$resumen['inventario']['nino'];
-$totalNina = (int)$resumen['inventario']['nina'];
-$porcentajeNino = $totalFisico > 0 ? round($totalNino * 100 / $totalFisico, 1) : 0;
-$porcentajeNina = $totalFisico > 0 ? round($totalNina * 100 / $totalFisico, 1) : 0;
-$maximoAlmacen = max(array_map(fn($a) => (int)$a['total'], $almacenes) ?: [1]);
-$maximoTalla = max(array_map(fn($t) => max((int)$t['nino'], (int)$t['nina']), $existenciasPorTalla) ?: [1]);
-$alertasStock = $alertasStock ?? [];
+$totalUniformes = (int)($metricas['total_uniformes'] ?? 0);
+$totalEntregas = (int)($metricas['total_entregas'] ?? 0);
+$uniformesEscuelas = (int)($metricas['uniformes_escuelas'] ?? 0);
+$uniformesRegionales = (int)($metricas['uniformes_regionales'] ?? 0);
+$entregasEscuelas = (int)($metricas['entregas_escuelas'] ?? 0);
+$entregasRegionales = (int)($metricas['entregas_regionales'] ?? 0);
+$ultimas = $metricas['ultimas_entregas'] ?? [];
 ?>
 
-<section class="dashboard-hero">
+<!-- Hero Banner Principal -->
+<section class="dashboard-hero" style="background:linear-gradient(135deg, #4a1525 0%, #6e1a33 100%); color:#fff; border-radius:12px; padding:28px 32px; margin-bottom:28px; box-shadow:0 4px 12px rgba(74,21,37,0.15); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:20px;">
     <div>
-        <span>Inventario institucional actualizado</span>
-        <h3><?= numero($totalFisico) ?> uniformes bajo control</h3>
-        <p>Existencia consolidada en <?= numero($resumen['activos']) ?> almacenes activos de Guerrero.</p>
-    </div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;">
-        <a class="button" style="background:#246e45;color:#fff;" href="<?= escapar(url('inventario-entrada')) ?>">➕ Entrada de Stock</a>
-        <a class="button" style="background:#235782;color:#fff;" href="<?= escapar(url('inventario-traspaso')) ?>">⇄ Traspaso</a>
-        <a class="button" href="<?= escapar(url('almacenes')) ?>">Consultar existencias</a>
-    </div>
-</section>
-
-<section class="executive-metrics">
-    <article class="executive-card total-card">
-        <div class="metric-icon">∑</div>
-        <div>
-            <span>Total físico</span>
-            <strong><?= numero($totalFisico) ?></strong>
-            <small>100% del inventario</small>
-        </div>
-    </article>
-    <article class="executive-card girl-card">
-        <div class="metric-icon">♀</div>
-        <div>
-            <span>Uniformes Niña</span>
-            <strong><?= numero($totalNina) ?></strong>
-            <small><?= escapar($porcentajeNina) ?>% del inventario</small>
-        </div>
-    </article>
-    <article class="executive-card boy-card">
-        <div class="metric-icon">♂</div>
-        <div>
-            <span>Uniformes Niño</span>
-            <strong><?= numero($totalNino) ?></strong>
-            <small><?= escapar($porcentajeNino) ?>% del inventario</small>
-        </div>
-    </article>
-    <article class="executive-card available-card">
-        <div class="metric-icon">✓</div>
-        <div>
-            <span>Disponible</span>
-            <strong><?= numero($resumen['inventario']['disponible']) ?></strong>
-            <small><?= numero($resumen['inventario']['apartado']) ?> piezas apartadas</small>
-        </div>
-    </article>
-</section>
-
-<?php if ($alertasStock): ?>
-    <section class="chart-panel" style="margin-top:20px;border-left:4px solid #c94b56;">
-        <div class="panel-heading">
-            <div>
-                <span style="color:#c94b56;">Semáforo de Reorden Operativo</span>
-                <h3>⚠️ Alertas de Stock Mínimo por Almacén</h3>
-            </div>
-            <a href="<?= escapar(url('inventario-entrada')) ?>" style="color:#246e45;font-weight:700;">+ Programar Ingreso</a>
-        </div>
-        <p style="margin:-10px 0 16px;color:var(--muted);font-size:13px;">
-            Las siguientes tallas registran existencias disponibles iguales o menores al umbral de reorden (≤50 prendas) o están en nivel crítico/agotado:
+        <span style="font-size:13px; text-transform:uppercase; letter-spacing:1px; opacity:0.85; display:block; margin-bottom:6px;">
+            Programa de Dotación de Uniformes Escolares SEG
+        </span>
+        <h3 style="font-size:28px; font-weight:800; margin:0 0 8px 0; color:#fff;">
+            <?= number_format($totalUniformes) ?> uniformes entregados
+        </h3>
+        <p style="margin:0; font-size:15px; opacity:0.9;">
+            Registrados en <?= number_format($totalEntregas) ?> entregas oficiales directas a planteles y coordinaciones.
         </p>
-        <div class="table-wrap" style="margin:0;">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Almacén</th>
-                        <th>Talla</th>
-                        <th>Género</th>
-                        <th>Físico</th>
-                        <th>Apartado</th>
-                        <th>Disponible</th>
-                        <th>Estado de Stock</th>
-                        <th style="text-align:right;">Acción</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach (array_slice($alertasStock, 0, 8) as $al): ?>
-                        <?php
-                        $badgeClase = match ($al['nivel_alerta']) {
-                            'AGOTADO' => 'status-stock-critical',
-                            'CRITICO' => 'status-stock-critical',
-                            'BAJO' => 'status-stock-low',
-                            default => 'status-stock-ok'
-                        };
-                        ?>
-                        <tr>
-                            <td><strong><?= escapar($al['almacen_nombre']) ?></strong></td>
-                            <td>Talla <?= escapar($al['talla']) ?></td>
-                            <td><?= $al['sexo'] === 'NINA' ? '♀ Niña' : '♂ Niño' ?></td>
-                            <td><?= numero($al['cantidad_fisica']) ?></td>
-                            <td><?= numero($al['cantidad_apartada']) ?></td>
-                            <td><strong><?= numero($al['disponible']) ?></strong></td>
-                            <td>
-                                <span class="status-stock-pill <?= $badgeClase ?>">
-                                    <?= escapar($al['nivel_alerta']) ?> (≤ <?= numero($al['stock_minimo']) ?>)
-                                </span>
-                            </td>
-                            <td style="text-align:right;">
-                                <a class="button button-action-in" style="padding:4px 9px;font-size:11px;" href="<?= escapar(url('inventario-entrada', ['almacen_id' => $al['almacen_id']])) ?>">
-                                    + Surtir
-                                </a>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        </div>
-    </section>
-<?php endif; ?>
+    </div>
+    <div style="display:flex; gap:12px; flex-wrap:wrap;">
+        <a class="button" href="<?= escapar(url('entrega-nueva')) ?>" style="background:#fff; color:#4a1525; font-weight:700; font-size:15px; padding:12px 22px; border:none; box-shadow:0 2px 5px rgba(0,0,0,0.2);">
+            + Registrar Nueva Entrega
+        </a>
+        <a class="button button-outline" href="<?= escapar(url('entregas')) ?>" style="border-color:rgba(255,255,255,0.7); color:#fff; font-size:15px; padding:12px 20px;">
+            Ver Todas las Entregas
+        </a>
+    </div>
+</section>
 
-<section class="dashboard-grid">
-    <article class="chart-panel distribution-panel">
-        <div class="panel-heading">
-            <div>
-                <span>Distribución general</span>
-                <h3>Inventario por género</h3>
-            </div>
-            <span class="panel-tag"><?= numero($totalFisico) ?> piezas</span>
+<!-- Métricas Clave -->
+<section class="executive-metrics" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:18px; margin-bottom:30px;">
+    
+    <!-- Tarjeta: Total Entregas -->
+    <article class="executive-card" style="background:#fff; border:1px solid var(--border); border-radius:10px; padding:20px; display:flex; align-items:center; gap:16px; box-shadow:0 2px 4px rgba(0,0,0,0.03);">
+        <div style="width:50px; height:50px; border-radius:12px; background:#fdf2f4; color:#a61e4d; font-size:22px; display:flex; align-items:center; justify-content:center; font-weight:bold;">
+            📦
         </div>
-        <div class="donut-layout">
-            <div class="donut-chart" style="--girl:<?= escapar($porcentajeNina) ?>deg;--girl-angle:<?= escapar($porcentajeNina * 3.6) ?>deg">
-                <div>
-                    <strong><?= numero($totalFisico) ?></strong>
-                    <span>Total</span>
-                </div>
-            </div>
-            <div class="chart-legend">
-                <div class="girl-legend">
-                    <i></i>
-                    <span>Niña<strong><?= numero($totalNina) ?></strong><small><?= escapar($porcentajeNina) ?>%</small></span>
-                </div>
-                <div class="boy-legend">
-                    <i></i>
-                    <span>Niño<strong><?= numero($totalNino) ?></strong><small><?= escapar($porcentajeNino) ?>%</small></span>
-                </div>
-            </div>
+        <div>
+            <span style="font-size:13px; color:var(--muted); font-weight:600; text-transform:uppercase;">Total Entregas</span>
+            <strong style="display:block; font-size:24px; font-weight:800; color:#212529;"><?= number_format($totalEntregas) ?></strong>
+            <small style="color:var(--muted); font-size:12px;">Comprobantes emitidos</small>
         </div>
     </article>
 
-    <article class="chart-panel">
-        <div class="panel-heading">
-            <div>
-                <span>Concentración operativa</span>
-                <h3>Existencias por almacén</h3>
-            </div>
-            <a href="<?= escapar(url('almacenes')) ?>">Ver detalle</a>
+    <!-- Tarjeta: A Escuelas -->
+    <article class="executive-card" style="background:#fff; border:1px solid var(--border); border-radius:10px; padding:20px; display:flex; align-items:center; gap:16px; box-shadow:0 2px 4px rgba(0,0,0,0.03);">
+        <div style="width:50px; height:50px; border-radius:12px; background:#e8f4fd; color:#1971c2; font-size:22px; display:flex; align-items:center; justify-content:center; font-weight:bold;">
+            🏫
         </div>
-        <div class="warehouse-chart">
-            <?php foreach ($almacenes as $a): ?>
-                <?php $ancho = $maximoAlmacen > 0 ? (int)$a['total'] * 100 / $maximoAlmacen : 0; ?>
-                <div class="warehouse-row">
-                    <div class="warehouse-label">
-                        <span><?= escapar(str_replace('ALMACEN REGIONAL ZONA ', '', $a['nombre'])) ?></span>
-                        <strong><?= numero($a['total']) ?></strong>
-                    </div>
-                    <div class="bar-track">
-                        <div class="bar-total" style="width:<?= escapar(round($ancho, 2)) ?>%">
-                            <span class="bar-girl" style="width:<?= (int)$a['total'] > 0 ? escapar(round((int)$a['nina'] * 100 / (int)$a['total'], 2)) : 0 ?>%"></span>
-                        </div>
-                    </div>
-                </div>
-            <?php endforeach; ?>
+        <div>
+            <span style="font-size:13px; color:var(--muted); font-weight:600; text-transform:uppercase;">A Escuelas</span>
+            <strong style="display:block; font-size:24px; font-weight:800; color:#1971c2;"><?= number_format($uniformesEscuelas) ?> pzs</strong>
+            <small style="color:var(--muted); font-size:12px;"><?= number_format($entregasEscuelas) ?> planteles atendidos</small>
+        </div>
+    </article>
+
+    <!-- Tarjeta: A Servicios Regionales -->
+    <article class="executive-card" style="background:#fff; border:1px solid var(--border); border-radius:10px; padding:20px; display:flex; align-items:center; gap:16px; box-shadow:0 2px 4px rgba(0,0,0,0.03);">
+        <div style="width:50px; height:50px; border-radius:12px; background:#f3f0ff; color:#6741d9; font-size:22px; display:flex; align-items:center; justify-content:center; font-weight:bold;">
+            🏢
+        </div>
+        <div>
+            <span style="font-size:13px; color:var(--muted); font-weight:600; text-transform:uppercase;">A Coordinaciones</span>
+            <strong style="display:block; font-size:24px; font-weight:800; color:#6741d9;"><?= number_format($uniformesRegionales) ?> pzs</strong>
+            <small style="color:var(--muted); font-size:12px;"><?= number_format($entregasRegionales) ?> entregas regionales</small>
+        </div>
+    </article>
+
+    <!-- Tarjeta: Promedio -->
+    <article class="executive-card" style="background:#fff; border:1px solid var(--border); border-radius:10px; padding:20px; display:flex; align-items:center; gap:16px; box-shadow:0 2px 4px rgba(0,0,0,0.03);">
+        <div style="width:50px; height:50px; border-radius:12px; background:#ebfbee; color:#2b8a3e; font-size:22px; display:flex; align-items:center; justify-content:center; font-weight:bold;">
+            📊
+        </div>
+        <div>
+            <span style="font-size:13px; color:var(--muted); font-weight:600; text-transform:uppercase;">Promedio x Entrega</span>
+            <strong style="display:block; font-size:24px; font-weight:800; color:#2b8a3e;">
+                <?= $totalEntregas > 0 ? number_format(round($totalUniformes / $totalEntregas)) : 0 ?> pzs
+            </strong>
+            <small style="color:var(--muted); font-size:12px;">Por cada registro</small>
         </div>
     </article>
 </section>
 
-<article class="chart-panel size-panel">
-    <div class="panel-heading">
-        <div>
-            <span>Composición del inventario</span>
-            <h3>Niña y Niño por talla</h3>
-        </div>
-        <div class="inline-legend">
-            <span class="girl-dot">Niña</span>
-            <span class="boy-dot">Niño</span>
-        </div>
+<!-- Últimas Entregas Registradas -->
+<div class="card" style="background:#fff; border:1px solid var(--border); border-radius:10px; padding:24px; box-shadow:0 2px 4px rgba(0,0,0,0.03);">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; border-bottom:2px solid var(--border); padding-bottom:10px;">
+        <h3 style="margin:0; font-size:18px; color:var(--wine); font-weight:700;">
+            Últimas Entregas Realizadas
+        </h3>
+        <a href="<?= escapar(url('entregas')) ?>" style="font-size:14px; font-weight:600; color:var(--wine); text-decoration:none;">
+            Ver historial completo →
+        </a>
     </div>
-    <div class="size-chart">
-        <?php foreach ($existenciasPorTalla as $t): ?>
-            <?php
-            $altoNina = $maximoTalla > 0 ? (int)$t['nina'] * 100 / $maximoTalla : 0;
-            $altoNino = $maximoTalla > 0 ? (int)$t['nino'] * 100 / $maximoTalla : 0;
-            ?>
-            <div class="size-group">
-                <div class="size-columns">
-                    <div class="vertical-bar girl-bar" style="height:<?= escapar(round($altoNina, 2)) ?>%">
-                        <span><?= numero($t['nina']) ?></span>
-                    </div>
-                    <div class="vertical-bar boy-bar" style="height:<?= escapar(round($altoNino, 2)) ?>%">
-                        <span><?= numero($t['nino']) ?></span>
-                    </div>
-                </div>
-                <strong>Talla <?= escapar($t['talla']) ?></strong>
-            </div>
-        <?php endforeach; ?>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Folio</th>
+                    <th>Destino</th>
+                    <th>Nombre del Destinatario</th>
+                    <th>Fecha</th>
+                    <th>Recibido por</th>
+                    <th style="text-align:center;">Prendas</th>
+                    <th style="text-align:right;">Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if (empty($ultimas)): ?>
+                    <tr>
+                        <td colspan="7" class="empty" style="text-align:center; padding:30px;">
+                            Sin entregas registradas aún.
+                        </td>
+                    </tr>
+                <?php endif; ?>
+
+                <?php foreach ($ultimas as $u): ?>
+                    <?php $esEscuela = ($u['tipo_destino'] === 'ESCUELA'); ?>
+                    <tr>
+                        <td>
+                            <strong style="color:var(--wine);"><?= escapar($u['folio']) ?></strong>
+                        </td>
+                        <td>
+                            <?php if ($esEscuela): ?>
+                                <span style="display:inline-block; padding:3px 8px; border-radius:12px; font-size:12px; font-weight:600; background:#e8f4fd; color:#1971c2;">
+                                    🏫 Escuela
+                                </span>
+                            <?php else: ?>
+                                <span style="display:inline-block; padding:3px 8px; border-radius:12px; font-size:12px; font-weight:600; background:#f3f0ff; color:#6741d9;">
+                                    🏢 Regional
+                                </span>
+                            <?php endif; ?>
+                        </td>
+                        <td>
+                            <strong><?= escapar($esEscuela ? ($u['escuela_nombre'] ?: 'Escuela') : ($u['servicio_nombre'] ?: 'Coordinación Regional')) ?></strong>
+                            <?php if ($esEscuela && !empty($u['escuela_cct'])): ?>
+                                <div style="font-size:11px; color:var(--muted);">CCT: <?= escapar($u['escuela_cct']) ?></div>
+                            <?php endif; ?>
+                        </td>
+                        <td style="font-size:13px;">
+                            <?= date('d/m/Y', strtotime($u['fecha_entrega'])) ?>
+                        </td>
+                        <td>
+                            <span style="font-size:13px; font-weight:600;"><?= escapar($u['recibido_por_nombre']) ?></span>
+                        </td>
+                        <td style="text-align:center;">
+                            <span style="display:inline-block; padding:3px 8px; border-radius:12px; font-weight:700; font-size:12px; background:#ebfbee; color:#2b8a3e;">
+                                <?= number_format((int)$u['total_piezas']) ?> pzs
+                            </span>
+                        </td>
+                        <td style="text-align:right;">
+                            <a class="button button-outline" href="<?= escapar(url('entrega-detalle') . '&id=' . $u['id']) ?>" style="padding:4px 9px; font-size:12px;">
+                                📄 Comprobante
+                            </a>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
     </div>
-</article>
+</div>

@@ -13,15 +13,22 @@ if (!function_exists('escapar')) {
 }
 
 $rutas=[
-    'inicio'=>['controllerDashboard','index'], 'almacenes'=>['controllerAlmacen','index'], 'almacen-detalle'=>['controllerAlmacen','detalle'],
-    'servicios-regionales'=>['controllerServicioRegional','index'], 'escuelas'=>['controllerEscuela','index'], 'solicitudes'=>['controllerSolicitud','index'], 'solicitud-nueva'=>['controllerSolicitud','nueva'], 'solicitud-buscar-escuelas'=>['controllerSolicitud','buscarEscuelasJson'],
-    'solicitud-detalle'=>['controllerSolicitud','detalle'], 'solicitud-editar'=>['controllerSolicitud','editar'], 'solicitud-entregar'=>['controllerSolicitud','entregarDirecto'], 'entregas'=>['controllerEntrega','index'], 'entrega-nueva'=>['controllerEntrega','nueva'],
-    'entrega-detalle'=>['controllerEntrega','detalle'], 'entrega-cancelar'=>['controllerEntrega','cancelar'], 'entrega-eliminar'=>['controllerEntrega','eliminar'], 'movimientos'=>['controllerMovimientoAlmacen','index'],
-    'inventario-entrada'=>['controllerInventario','entrada'], 'inventario-traspaso'=>['controllerInventario','traspaso'], 'inventario-ajuste'=>['controllerInventario','ajuste'], 'inventario-existencias-json'=>['controllerInventario','existenciasJson'],
-    'comprobante-entrada'=>['controllerInventario','comprobanteEntrada'], 'comprobante-traspaso'=>['controllerInventario','comprobanteTraspaso'], 'comprobante-ajuste'=>['controllerInventario','comprobanteAjuste'],
-    'entrega-escuela-nueva'=>['controllerEntregaEscuela','nueva'], 'acta-escuela'=>['controllerEntregaEscuela','acta'],
-    'subir-acuse-escuela'=>['controllerEntregaEscuela','subirAcuse'], 'subir-acuse-regional'=>['controllerEntregaEscuela','subirAcuseRegional'],
-    'verificar-documento'=>['controllerVerificacion','validar'],
+    'inicio'=>['controllerDashboard','index'], 
+    'entregas'=>['controllerEntregaSimple','listar'], 
+    'entrega-nueva'=>['controllerEntregaSimple','nueva'], 
+    'entrega-guardar'=>['controllerEntregaSimple','guardar'], 
+    'entrega-detalle'=>['controllerEntregaSimple','detalle'], 
+    'entrega-eliminar'=>['controllerEntregaSimple','eliminar'], 
+    'escuelas'=>['controllerEscuela','index'], 
+    'servicios-regionales'=>['controllerServicioRegional','index'],
+    'almacenes'=>['controllerAlmacen','index'], 
+    'almacen-detalle'=>['controllerAlmacen','detalle'],
+    'solicitudes'=>['controllerSolicitud','index'], 
+    'solicitud-nueva'=>['controllerSolicitud','nueva'], 
+    'solicitud-buscar-escuelas'=>['controllerSolicitud','buscarEscuelasJson'],
+    'solicitud-detalle'=>['controllerSolicitud','detalle'], 
+    'solicitud-editar'=>['controllerSolicitud','editar'], 
+    'movimientos'=>['controllerMovimientoAlmacen','index'],
 ];
 $ruta=(string)($_GET['ruta']??'inicio');
 if(!isset($rutas[$ruta])){mostrarNoEncontrado();exit;}

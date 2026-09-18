@@ -11,4 +11,4 @@
 </head>
 <body>
 <header class="topbar"><div><strong>SECRETARÍA DE EDUCACIÓN GUERRERO</strong><span>Sistema de Entrega de Uniformes Escolares</span></div></header>
-<div class="brand"><div class="identity-placeholder"><span>GOBIERNO DEL ESTADO</span><strong>GUERRERO</strong></div><div class="identity-divider"></div><div class="identity-placeholder seg"><span>SECRETARÍA DE</span><strong>EDUCACIÓN<br>GUERRERO</strong></div><div class="identity-divider"></div><div class="system-identity"><span>Control institucional</span><h1>Uniformes Escolares</h1><small>Almacén → Servicio Regional</small></div></div>
+<div class="brand"><div class="identity-placeholder"><span>GOBIERNO DEL ESTADO</span><strong>GUERRERO</strong></div><div class="identity-divider"></div><div class="identity-placeholder seg"><span>SECRETARÍA DE</span><strong>EDUCACIÓN<br>GUERRERO</strong></div><div class="identity-divider"></div><div class="system-identity"><span>Control institucional</span><h1>Uniformes Escolares</h1><small>Control Oficial de Entregas</small></div></div>
